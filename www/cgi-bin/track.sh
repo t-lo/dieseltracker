@@ -123,7 +123,7 @@ function plot() {
     local plot_cfg=`mktemp`
 
     cat >"$plot_cfg" << EOF
-    set terminal png size $graph_width,$graph_height enhanced transparent font helvetica 15
+    set terminal png size $graph_width,$graph_height enhanced transparent
     set output '$plot_name.png'
 
     set title "$desc"
@@ -145,7 +145,7 @@ EOF
     if [ -f "$prices_dir/$id" ] ; then
         echo "    plot '$prices_dir/$id' using 1:3 index 0 t \"\" with lines" >>"$plot_cfg"
     else
-        echo "    set multiplot enhanced" >>"$plot_cfg"
+        echo "    set multiplot" >>"$plot_cfg"
         local onlyonce="1"
         for file in "$prices_dir/"*; do
             echo "    plot '$file' using 1:3 index 0 t \"\" with lines" >>"$plot_cfg"
