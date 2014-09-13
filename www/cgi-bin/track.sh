@@ -211,6 +211,8 @@ function fetch_and_update_data() {
                 echo "$name ($marke) $strasse $hausnr $plz $ort ($entfernung km)" > "$idfile"
             echo "$datum $diesel $entfernung ($ts)" >> "$pricefile"
         done
+    
+    rm "$wwwdir/"*.png
 }
 # ----
 
