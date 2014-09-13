@@ -245,13 +245,14 @@ EOF
 EOF
         write_html_graphs "$id"
 
-        echo '<br clear="all"/>'
+        echo '<br clear="all"/> <hr width="30%" height="2pt">'
 
-        cat "$prices_dir/$id" | cut -d " " -f 1-3 | sed 's/$/<br \/>/'
+        head -n 50 "$prices_dir/$id" | cut -d " " -f 1-3 | sed 's/$/<br \/>/'
 
 cat << EOF
-        <br clear="all" />
-
+        <br clear="all" /> <hr width="30%" height="2pt">
+        <form action="track.sh" method="get" >
+            <button class="button" type="submit">Zur&uuml;ck</button> </form>
 </body></html> 
 EOF
 
