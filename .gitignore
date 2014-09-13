@@ -1,0 +1,9 @@
+www/data/*
+*.swp
+*.png
+.ht*
+*.crt
+*.csr
+*.sslconf
+*.key
+*.diff
