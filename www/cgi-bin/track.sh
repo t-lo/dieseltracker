@@ -85,7 +85,7 @@ EOF
             <button class="button" name="details" value="$id" type="submit">
 EOF
         echo "$info" | cut -d " " -f3,6-
-        cat "$id_dir/$id"
+        cat "$id_dir/$id" | cut -d " " -f 3-
         echo '</button></form>'
     done < "$sorted"
 
@@ -207,8 +207,7 @@ function fetch_and_update_data() {
 
             local idfile="$id_dir/$mtsk_id"
             local pricefile="$prices_dir/${mtsk_id}"
-            [ ! -f "$idfile" ] && \
-                echo "$name ($marke) $strasse $hausnr $plz $ort ($entfernung km)" > "$idfile"
+            echo "$laengengrad $breitengrad $name ($marke) $strasse $hausnr $plz $ort ($entfernung km)" > "$idfile"
             echo "$datum $diesel $entfernung ($ts)" >> "$pricefile"
         done
     
@@ -218,6 +217,7 @@ function fetch_and_update_data() {
 
 function show_details() {
     local id="$1"
+    local idfile="$id_dir/$id"
 
     if [ ! -f "$id_dir/$id" -o ! -f "$prices_dir/$id" ] ; then
         redirect
@@ -225,6 +225,9 @@ function show_details() {
     fi
 
     generate_plots "$id"
+
+    local lon="`cut -d \" \" -f 1 $idfile`"
+    local lat="`cut -d \" \" -f 2 $idfile`"
 
     echo -en 'content-type:text/html; charset=utf-8\r\n\r\n'
     cat << EOF
@@ -238,10 +241,32 @@ function show_details() {
         <div class="titlebar" height="5%">
             <h1 style="margin-left: 5pt;"> 
 EOF
-        cat "$id_dir/$id"
+        cut -d " " -f 3- $idfile
     cat << EOF
         </div> 
         <br clear="all"/>
+
+        <div id="mapdiv" class="mapdiv" >&nbsp;</div>
+          <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+          <script>
+            map = new OpenLayers.Map("mapdiv");
+            map.addLayer(new OpenLayers.Layer.OSM());
+         
+            var lonLat = new OpenLayers.LonLat( $lon ,$lat )
+                  .transform(
+                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    map.getProjectionObject() // to Spherical Mercator Projection
+                  );
+         
+            var zoom=17;
+         
+            var markers = new OpenLayers.Layer.Markers( "Markers" );
+            map.addLayer(markers);
+         
+            markers.addMarker(new OpenLayers.Marker(lonLat));
+         
+            map.setCenter (lonLat, zoom);
+        </script>
 EOF
         write_html_graphs "$id"
 
