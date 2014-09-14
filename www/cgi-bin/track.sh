@@ -72,7 +72,28 @@ function write_html() {
 
         <div class="titlebar" height="5%">
             <h1 style="margin-left: 5pt;"> Spritpreise </h1>
-        </div> 
+        </div>
+
+        <script type="text/javascript">
+            function flip_detail(id) {
+                var iframe=document.getElementById(id);
+                if (iframe.className == "visible details") {
+                    iframe.src=""
+                    iframe.className = "hidden details"
+                } else {
+                    var xhr = new XMLHttpRequest();
+                    var len = 0
+                    xhr.open("post", "track.sh", true);
+                    xhr.onreadystatechange = function(){
+                        if (xhr.readyState >= xhr.DONE) {
+                            iframe.contentDocument.write(xhr.responseText)
+                            iframe.className = "visible details"
+                        }
+                    }
+                    xhr.send("details=" + id);
+                }
+           }
+        </script>
 EOF
 
     write_html_graphs
@@ -80,16 +101,15 @@ EOF
     echo '<br clear="all"/>'
 
     while read id info; do
-        cat << EOF
-        <form action="track.sh" method="post" target="" >
-            <button class="button" name="details" value="$id" type="submit">
-EOF
+        echo "<button class=\"button\" onClick=\"flip_detail('$id');\">"
         echo "$info" | awk '{ print "&euro; " $3 " (" $4 " km) <br /> "}'
         cut -f 3,5,6 "$id_dir/$id" 
-        echo '</button></form>'
+        echo '</button> <br clear="all" />'
+        echo "<iframe id=\"$id\" class=\"hidden details\"></iframe> <br clear=\"all\" />"
+        
     done < "$sorted"
 
-    echo '</body></html>'
+    echo '</center></body></html>'
     rm "$sorted"
 }
 # ----
@@ -240,29 +260,12 @@ function show_details() {
     <head>
         <link rel="stylesheet" type="text/css" href="../index.css">
     </head>
-    <body>
-	<center>
-
-        <div class="titlebar" height="5%">
-            <h1 style="margin-left: 5pt;"> 
-EOF
-        cut -f 3- $idfile
-    cat << EOF
-        </div> 
+    <body style="text-align: center;">
 EOF
         write_html_graphs "$id"
-
-        echo '<br clear="all"/> <hr width="30%" height="2pt">'
-
-        head -n 50 "$prices_dir/$id" | cut -d " " -f 1-3 | sed 's/$/<br \/>/'
+        echo '<br clear="all"/>'
 
 cat << EOF
-        <br clear="all" /> <hr width="30%" height="2pt">
-        <form action="track.sh" method="get" >
-            <button class="button" type="submit">Zur&uuml;ck</button> </form>
-
-        <br clear="all"/>
-
         <div id="mapdiv" class="mapdiv" >&nbsp;</div>
           <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
           <script>

@@ -24,6 +24,11 @@ td { margin:0pt; padding:0pt; border:none; }
 .itemheader { font-size:40pt; font-weight:normal;
     margin-left:5pt; margin-top:20pt; }
 
+.hidden {display:none; visibility:hidden;}
+.visible{display:block; visibility:visible;}
+
+.details{ padding-top: 20pt; margin:0pt; border:0pt; width:100%; height:1050pt; }
+
 .button { 
     background:#eee; border: 1px solid #aaa; 
     padding:10pt; margin: 0pt;
