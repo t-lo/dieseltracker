@@ -26,9 +26,10 @@ td { margin:0pt; padding:0pt; border:none; }
 
 .button { 
     background:#eee; border: 1px solid #aaa; 
-    padding:20pt; margin: 0pt;
+    padding:10pt; margin: 0pt;
+    width:90%; height: 100pt;
     border-radius: 15pt 15pt 15pt 15pt;
     box-shadow: 5pt 5pt 5pt #888;
-    text-decoration:none; 
+    text-decoration:none; text-align: left; overflow:none;
     font:25pt sans-serif; font-variant: small-caps;
     color:#555; }

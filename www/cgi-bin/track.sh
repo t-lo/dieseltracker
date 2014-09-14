@@ -6,6 +6,7 @@ wwwdir=".."
 datadir="$wwwdir/data"
 prices_dir="$datadir/prices"
 id_dir="$datadir/id"
+current_list="$datadir/current"
 
 plz=10827
 umkreis=5 #km
@@ -52,13 +53,12 @@ EOF
 # ----
 
 function write_html() {
-
     local sorted="`mktemp`"
 
-    for file in "$prices_dir/"*; do
-        echo -n "`basename $file` "
-        tail -n1 $file
-    done | sort -n -k4,4 -k 5,5 \
+    while read file; do
+        echo -n "$file "
+        tail -n1 "$prices_dir/$file"
+    done < "$current_list" | sort -n -k4,4 -k 5,5 \
     > "$sorted"
 
     echo -en 'content-type:text/html; charset=utf-8\r\n\r\n'
@@ -81,11 +81,11 @@ EOF
 
     while read id info; do
         cat << EOF
-        <form action="track.sh" method="post" >
+        <form action="track.sh" method="post" target="" >
             <button class="button" name="details" value="$id" type="submit">
 EOF
-        echo "$info" | cut -d " " -f3,6-
-        cat "$id_dir/$id" | cut -d " " -f 3-
+        echo "$info" | awk '{ print "&euro; " $3 " (" $4 " km) <br /> "}'
+        cut -f 3,5,6 "$id_dir/$id" 
         echo '</button></form>'
     done < "$sorted"
 
@@ -195,20 +195,25 @@ function fetch_and_update_data() {
     mkdir -p "$prices_dir"
     mkdir -p "$id_dir"
 
+    > "$current_list"
+
     # fetch current data, put each record on a separate line, format for bash
     # variables
     curl -s \
         "http://www.spritpreismonitor.de/suche/?tx_spritpreismonitor_pi1%5BsearchRequest%5D%5BplzOrtGeo%5D=$plz&tx_spritpreismonitor_pi1%5BsearchRequest%5D%5Bumkreis%5D=$umkreis&tx_spritpreismonitor_pi1%5BsearchRequest%5D%5Bkraftstoffart%5D=diesel&tx_spritpreismonitor_pi1%5BsearchRequest%5D%5Btankstellenbetreiber%5D=" \
         | grep 'var spmResult' \
         | sed -e 's/.*\(\[.*\]\).*/\1/'  -e 's/[\[{]//g' -e 's/},/\n/g' \
-              -e 's/}]//' -e 's/"\([^"]*\)":"\([^"]*\)",*/\1="\2" /g' \
+              -e 's/}]//' -e 's/"\([^"]*\)":"\([^"]*\)",*/\1="\2" /g'   \
+              -e 's/u00f6/\&ouml;/g' -e 's/u00df/\&szlig;/g'          \
+              -e 's/u00fc/\&uuml;/g' -e 's/u00e4/\&auml;/g'          \
         | while read line; do
             eval "$line"
 
             local idfile="$id_dir/$mtsk_id"
             local pricefile="$prices_dir/${mtsk_id}"
-            echo "$laengengrad $breitengrad $name ($marke) $strasse $hausnr $plz $ort ($entfernung km)" > "$idfile"
+            echo -e "$laengengrad\t$breitengrad\t$name\t$marke\t$strasse\t$hausnr\t$plz\t$ort\t$entfernung" > "$idfile"
             echo "$datum $diesel $entfernung ($ts)" >> "$pricefile"
+            echo "$mtsk_id" >> "$current_list"
         done
     
     rm "$wwwdir/"*.png
@@ -226,8 +231,8 @@ function show_details() {
 
     generate_plots "$id"
 
-    local lon="`cut -d \" \" -f 1 $idfile`"
-    local lat="`cut -d \" \" -f 2 $idfile`"
+    local lon="`cut -f 1 $idfile`"
+    local lat="`cut -f 2 $idfile`"
 
     echo -en 'content-type:text/html; charset=utf-8\r\n\r\n'
     cat << EOF
@@ -241,9 +246,21 @@ function show_details() {
         <div class="titlebar" height="5%">
             <h1 style="margin-left: 5pt;"> 
 EOF
-        cut -d " " -f 3- $idfile
+        cut -f 3- $idfile
     cat << EOF
         </div> 
+EOF
+        write_html_graphs "$id"
+
+        echo '<br clear="all"/> <hr width="30%" height="2pt">'
+
+        head -n 50 "$prices_dir/$id" | cut -d " " -f 1-3 | sed 's/$/<br \/>/'
+
+cat << EOF
+        <br clear="all" /> <hr width="30%" height="2pt">
+        <form action="track.sh" method="get" >
+            <button class="button" type="submit">Zur&uuml;ck</button> </form>
+
         <br clear="all"/>
 
         <div id="mapdiv" class="mapdiv" >&nbsp;</div>
@@ -267,17 +284,7 @@ EOF
          
             map.setCenter (lonLat, zoom);
         </script>
-EOF
-        write_html_graphs "$id"
 
-        echo '<br clear="all"/> <hr width="30%" height="2pt">'
-
-        head -n 50 "$prices_dir/$id" | cut -d " " -f 1-3 | sed 's/$/<br \/>/'
-
-cat << EOF
-        <br clear="all" /> <hr width="30%" height="2pt">
-        <form action="track.sh" method="get" >
-            <button class="button" type="submit">Zur&uuml;ck</button> </form>
 </body></html> 
 EOF
 
