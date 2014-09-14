@@ -266,6 +266,7 @@ EOF
         echo '<br clear="all"/>'
 
 cat << EOF
+        <center>
         <div id="mapdiv" class="mapdiv" >&nbsp;</div>
           <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
           <script>
@@ -287,6 +288,7 @@ cat << EOF
          
             map.setCenter (lonLat, zoom);
         </script>
+        </center>
 
 </body></html> 
 EOF
