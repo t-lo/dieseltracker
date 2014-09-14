@@ -71,7 +71,7 @@ function write_html() {
 	<center>
 
         <div class="titlebar" height="5%">
-            <h1 style="margin-left: 5pt;"> Spritpreise </h1>
+            <h1 style="margin-left: 5pt;"> Diesel cost within $umkreis km of $plz</h1>
         </div>
 
         <script type="text/javascript">
@@ -102,7 +102,8 @@ EOF
 
     while read id info; do
         echo "<button class=\"button\" onClick=\"flip_detail('$id');\">"
-        echo "$info" | awk '{ print "&euro; " $3 " (" $4 " km) <br /> "}'
+        echo "$info" | awk '{
+            print "<span style=\"color:#500\"> &euro; " $3 " </span> (" $4 " km, last update " $2 ") <br /> "}'
         cut -f 3,5,6 "$id_dir/$id" 
         echo '</button> <br clear="all" />'
         echo "<iframe id=\"$id\" class=\"hidden details\"></iframe> <br clear=\"all\" />"
@@ -202,9 +203,9 @@ function generate_plots() {
         local month="$wwwdir/month"
     fi
 
-    plot "$today" "$tomorrow" "true" "$day" "Heute" "$id"
-    plot "$last_week" "$tomorrow" "false" "$week" "Letzte Woche" "$id"
-    plot "$last_month" "$tomorrow" "false" "$month" "Letzter Monat" "$id"
+    plot "$today" "$tomorrow" "true" "$day" "Today" "$id"
+    plot "$last_week" "$tomorrow" "false" "$week" "Last week" "$id"
+    plot "$last_month" "$tomorrow" "false" "$month" "Last month" "$id"
 }
 # ----
 
@@ -279,7 +280,7 @@ cat << EOF
                     map.getProjectionObject() // to Spherical Mercator Projection
                   );
          
-            var zoom=17;
+            var zoom=15;
          
             var markers = new OpenLayers.Layer.Markers( "Markers" );
             map.addLayer(markers);
