@@ -150,8 +150,8 @@ function plot() {
     set title "$desc"
     set style data fsteps
     set xdata time
-    set timefmt "%Y-%m-%d %H:%M:%S"
-    set xrange [ "$from" : "$to" ]
+    set timefmt "(%m/%d/%y-%H:%M:%S)"
+    set xrange [ "($from)" : "($to)" ]
     set yrange [ 1.2 : 1.6 ]
     set ytics 0.1
     set format x "%H:%M\\n%a %d"
@@ -164,12 +164,12 @@ function plot() {
     set tmargin 3
 EOF
     if [ -f "$prices_dir/$id" ] ; then
-        echo "    plot '$prices_dir/$id' using 1:3 index 0 t \"\" with lines" >>"$plot_cfg"
+        echo "    plot '$prices_dir/$id' using 5:3 index 0 t \"\" with lines" >>"$plot_cfg"
     else
         echo "    set multiplot" >>"$plot_cfg"
         local onlyonce="1"
         for file in "$prices_dir/"*; do
-            echo "    plot '$file' using 1:3 index 0 t \"\" with lines" >>"$plot_cfg"
+            echo "    plot '$file' using 5:3 index 0 t \"\" with lines" >>"$plot_cfg"
             [ "$onlyonce" = "1" ] && {
                 echo "    set xtics format \"\"" >> "$plot_cfg"
                 echo "    set ytics format \"\"" >> "$plot_cfg"
@@ -188,10 +188,10 @@ EOF
 function generate_plots() {
     local id="$1"
 
-    local today="`date --rfc-3339=seconds  -d 0 | sed 's/\+.*//'`"
-    local tomorrow="`date --rfc-3339=seconds -d \"+1day 0\" | sed 's/\+.*//'`"
-    local last_week="`date --rfc-3339=seconds -d \"-7day 0\" | sed 's/\+.*//'`"
-    local last_month="`date --rfc-3339=seconds -d \"-30day 0\" | sed 's/\+.*//'`"
+    local today="`date +%D-%H:%M:%S -d 0`"
+    local tomorrow="`date +%D-%H:%M:%S -d \"+1day 0\"`"
+    local last_week="`date +%D-%H:%M:%S -d \"-7day 0\"`"
+    local last_month="`date +%D-%H:%M:%S -d \"-30day 0\"`"
 
     if [ "$id" != "" ]; then
         local day="$wwwdir/${id}-day"
