@@ -250,8 +250,8 @@ function fetch_and_update_data() {
         for file in "$id_dir/"*; do
             local id="`basename $file`"
             local pricefile="$prices_dir/$id"
-            grep -q "$id" "$current_list" || \
-                [ "`tail -n1 $pricefile`" != "" ] && echo "" >> "$pricefile"
+            grep -q "$id" "$current_list" || {
+                [ "`tail -n1 $pricefile`" != "" ] && echo "" >> "$pricefile"; }
         done
 }
 # ----
