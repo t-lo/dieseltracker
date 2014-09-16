@@ -101,7 +101,8 @@ EOF
     echo '<br clear="all"/>'
 
     while read id info; do
-        echo "<button class=\"button\" onClick=\"flip_detail('$id');\">"
+        local rgb=`echo $id | md5sum | cut -b 1-6`
+        echo "<button class=\"button\" style=\"border-color: #$rgb;\" onClick=\"flip_detail('$id');\">"
         echo "$info" | awk '{
             print "<span style=\"color:#500\"> &euro; " $3 " </span> (" $4 " km, last update " $2 ") <br /> "}'
         cut -f 3,5,6 "$id_dir/$id" 
@@ -144,7 +145,7 @@ function plot() {
     local plot_cfg=`mktemp`
 
     cat >"$plot_cfg" << EOF
-    set terminal png size $graph_width,$graph_height enhanced transparent
+    set terminal png truecolor size $graph_width,$graph_height enhanced
     set output '$plot_name.png'
 
     set title "$desc"
@@ -164,12 +165,14 @@ function plot() {
     set tmargin 3
 EOF
     if [ -f "$prices_dir/$id" ] ; then
-        echo "    plot '$prices_dir/$id' using 5:3 index 0 t \"\" with lines" >>"$plot_cfg"
+        local rgb=`echo $id | md5sum | cut -b 1-6`
+        echo "    plot '$prices_dir/$id' using 5:3 index 0 t \"\" lt rgb '#$rgb' with lines" >>"$plot_cfg"
     else
         echo "    set multiplot" >>"$plot_cfg"
         local onlyonce="1"
         for file in "$prices_dir/"*; do
-            echo "    plot '$file' using 5:3 index 0 t \"\" with lines" >>"$plot_cfg"
+            local rgb=`basename $file | md5sum | cut -b 1-6`
+            echo "    plot '$file' using 5:3 index 0 t \"\" lt rgb '#$rgb' with lines" >>"$plot_cfg"
             [ "$onlyonce" = "1" ] && {
                 echo "    set xtics format \"\"" >> "$plot_cfg"
                 echo "    set ytics format \"\"" >> "$plot_cfg"
