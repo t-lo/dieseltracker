@@ -160,7 +160,7 @@ function plot() {
     set mxtics 2
     set grid xtics mxtics ytics
     set key left
-    set lmargin 10
+    set lmargin 5 
     set bmargin 3
     set tmargin 3
 EOF
