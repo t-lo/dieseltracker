@@ -17,22 +17,22 @@ graph_height=300
 function write_html_graphs() {
     local id="$1"
     if [ "$id" != "" ]; then
-        local day="${id}-day"
-        local week="${id}-week"
-        local month="${id}-month"
+        local g1="${id}-g1"
+        local g2="${id}-g2"
+        local g3="${id}-g3"
     else
-        local day="day"
-        local week="week"
-        local month="month"
+        local g1="g1"
+        local g2="g2"
+        local g3="g3"
     fi
 cat << EOF
         <br clear="all" />
 
-        <canvas id="$day" width="$graph_width" height="$graph_height" > </canvas>
+        <canvas id="$g1" width="$graph_width" height="$graph_height" > </canvas>
         <br /> <hr width="30%">
-        <canvas id="$week" width="$graph_width" height="$graph_height" ></canvas>
+        <canvas id="$g2" width="$graph_width" height="$graph_height" ></canvas>
         <br /> <hr width="30%">
-        <canvas id="$month" width="$graph_width" height="$graph_height" ></canvas>
+        <canvas id="$g3" width="$graph_width" height="$graph_height" ></canvas>
 
     <script type="text/javascript">
       function load_image(name) {
@@ -43,7 +43,7 @@ cat << EOF
         image.src = "../" + name + ".png?$RANDOM"
       }
       function load_images() {
-        var il = ["$day", "$week", "$month"]
+        var il = ["$g1", "$g2", "$g3"]
         for (var i in il) { load_image(il[i]) }
       }
       setTimeout(load_images, 100)
@@ -140,13 +140,13 @@ function plot() {
     local mxtics=""
     [    "$single_day" = "true" ] && {
         xtics="set xtics 0,7200"
-      }
+    }
 
     local plot_cfg=`mktemp`
 
     cat >"$plot_cfg" << EOF
     set terminal png truecolor size $graph_width,$graph_height enhanced
-    set output '$plot_name.png'
+    set output '${plot_name}.png'
 
     set title "$desc"
     set style data fsteps
@@ -193,22 +193,25 @@ function generate_plots() {
 
     local today="`date +%D-%H:%M:%S -d 0`"
     local tomorrow="`date +%D-%H:%M:%S -d \"+1day 0\"`"
+    local yesterday="`date +%D-%H:%M:%S -d \"-1day 0\"`"
     local last_week="`date +%D-%H:%M:%S -d \"-7day 0\"`"
-    local last_month="`date +%D-%H:%M:%S -d \"-30day 0\"`"
 
     if [ "$id" != "" ]; then
-        local day="$wwwdir/${id}-day"
-        local week="$wwwdir/${id}-week"
-        local month="$wwwdir/${id}-month"
+        local g1="$wwwdir/${id}-g1"
+        local g2="$wwwdir/${id}-g2"
+        local g3="$wwwdir/${id}-g3"
+        [ -f "$g1" -a -f "$g2" -a -f "$g3" ] && return
     else
-        local day="$wwwdir/day"
-        local week="$wwwdir/week"
-        local month="$wwwdir/month"
+        # global update; remove all existing plots
+        rm "$wwwdir/"*.png
+        local g1="$wwwdir/g1"
+        local g2="$wwwdir/g2"
+        local g3="$wwwdir/g3"
     fi
 
-    plot "$today" "$tomorrow" "true" "$day" "Today" "$id"
-    plot "$last_week" "$tomorrow" "false" "$week" "Last week" "$id"
-    plot "$last_month" "$tomorrow" "false" "$month" "Last month" "$id"
+    plot "$today" "$tomorrow" "true" "$g1" "Today" "$id"
+    plot "$yesterday" "$today" "true" "$g2" "Yesterday" "$id"
+    plot "$last_week" "$tomorrow" "false" "$g3" "Last week" "$id"
 }
 # ----
 
@@ -235,12 +238,12 @@ function fetch_and_update_data() {
 
             local idfile="$id_dir/$mtsk_id"
             local pricefile="$prices_dir/${mtsk_id}"
+            # write/update info on this specific gas station, append current
+            # gas price, and add station to the list of currently active stations
             echo -e "$laengengrad\t$breitengrad\t$name\t$marke\t$strasse\t$hausnr\t$plz\t$ort\t$entfernung" > "$idfile"
             echo "$datum $diesel $entfernung ($ts)" >> "$pricefile"
             echo "$mtsk_id" >> "$current_list"
         done
-    
-    rm "$wwwdir/"*.png
 }
 # ----
 
