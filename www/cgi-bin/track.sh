@@ -244,6 +244,15 @@ function fetch_and_update_data() {
             echo "$datum $diesel $entfernung ($ts)" >> "$pricefile"
             echo "$mtsk_id" >> "$current_list"
         done
+
+        # Add a blank line for any station not currently open
+        # so gnuplot will leave a gap in the graph
+        for file in "$id_dir/"*; do
+            local id="`basename $file`"
+            local pricefile="$prices_dir/$id"
+            grep -q "$id" "$current_list" || \
+                [ "`tail -n1 $pricefile`" != "" ] && echo "" >> "$pricefile"
+        done
 }
 # ----
 
