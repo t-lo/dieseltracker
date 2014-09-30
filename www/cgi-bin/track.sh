@@ -20,10 +20,12 @@ function write_html_graphs() {
         local g1="${id}-g1"
         local g2="${id}-g2"
         local g3="${id}-g3"
+        local g4="${id}-g4"
     else
         local g1="g1"
         local g2="g2"
         local g3="g3"
+        local g4="g4"
     fi
 cat << EOF
         <br clear="all" />
@@ -33,6 +35,9 @@ cat << EOF
         <canvas id="$g2" width="$graph_width" height="$graph_height" ></canvas>
         <br /> <hr width="30%">
         <canvas id="$g3" width="$graph_width" height="$graph_height" ></canvas>
+        <br /> <hr width="30%">
+        <canvas id="$g4" width="$graph_width" height="$graph_height" ></canvas>
+        <br /> <hr width="30%">
 
     <script type="text/javascript">
       function load_image(name) {
@@ -43,7 +48,7 @@ cat << EOF
         image.src = "../" + name + ".png?$RANDOM"
       }
       function load_images() {
-        var il = ["$g1", "$g2", "$g3"]
+        var il = ["$g1", "$g2", "$g3", "$g4"]
         for (var i in il) { load_image(il[i]) }
       }
       setTimeout(load_images, 100)
@@ -195,23 +200,27 @@ function generate_plots() {
     local tomorrow="`date +%D-%H:%M:%S -d \"+1day 0\"`"
     local yesterday="`date +%D-%H:%M:%S -d \"-1day 0\"`"
     local last_week="`date +%D-%H:%M:%S -d \"-7day 0\"`"
+    local last_month="`date +%D-%H:%M:%S -d \"-30day 0\"`"
 
     if [ "$id" != "" ]; then
         local g1="$wwwdir/${id}-g1"
         local g2="$wwwdir/${id}-g2"
         local g3="$wwwdir/${id}-g3"
-        [ -f "$g1" -a -f "$g2" -a -f "$g3" ] && return
+        local g4="$wwwdir/${id}-g4"
+        [ -f "$g1" -a -f "$g2" -a -f "$g3" -a -f "$g4" ] && return
     else
         # global update; remove all existing plots
         rm "$wwwdir/"*.png
         local g1="$wwwdir/g1"
         local g2="$wwwdir/g2"
         local g3="$wwwdir/g3"
+        local g4="$wwwdir/g4"
     fi
 
     plot "$today" "$tomorrow" "true" "$g1" "Today" "$id"
     plot "$yesterday" "$today" "true" "$g2" "Yesterday" "$id"
     plot "$last_week" "$tomorrow" "false" "$g3" "Last week" "$id"
+    plot "$last_month" "$tomorrow" "false" "$g4" "Last month" "$id"
 }
 # ----
 
