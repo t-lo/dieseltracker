@@ -26,6 +26,7 @@ function write_html_graphs() {
         local g2="g2"
         local g3="g3"
         local g4="g4"
+        local g5="g5"
     fi
 cat << EOF
         <br clear="all" />
@@ -38,7 +39,12 @@ cat << EOF
         <br /> <hr width="30%">
         <canvas id="$g4" width="$graph_width" height="$graph_height" ></canvas>
         <br /> <hr width="30%">
-
+EOF
+    [ -z "$id" ] && echo "
+        <canvas id="$g5" width="$graph_width" height="$graph_height" ></canvas>
+        <br /> <hr width="30%">
+        "
+cat << EOF
     <script type="text/javascript">
       function load_image(name) {
         var canvas = document.getElementById(name);
@@ -48,7 +54,13 @@ cat << EOF
         image.src = "../" + name + ".png?$RANDOM"
       }
       function load_images() {
-        var il = ["$g1", "$g2", "$g3", "$g4"]
+EOF
+    if [ -z "$id" ]; then
+        echo "        var il = [\"$g1\", \"$g2\", \"$g3\", \"$g4\", \"$g5\"]"
+    else
+        echo "        var il = [\"$g1\", \"$g2\", \"$g3\", \"$g4\"]"
+    fi
+cat << EOF
         for (var i in il) { load_image(il[i]) }
       }
       setTimeout(load_images, 100)
@@ -136,16 +148,22 @@ function redirect() {
 function plot() {
     local from="$1"
     local to="$2"
-    local single_day="$3"
-    local plot_name="$4"
-    local desc="$5"
-    local id="$6"
+    local ticks_sec="$3"
+    local mticks_sec="$4"
+    local plot_name="$5"
+    local desc="$6"
+    local id="$7"
 
-    local xtics=""
-    local mxtics=""
-    [    "$single_day" = "true" ] && {
-        xtics="set xtics 0,7200"
-    }
+    local xtics="set xtics 0,$ticks_sec"
+    local mxtics="set mxtics $mticks_sec"
+
+    local format=""
+    if [ $ticks_sec -le $((60*60*24)) ]; then
+        format='%H:%M\n%a %d'
+    else
+        format='%a %d\n%b'
+    fi
+
 
     local plot_cfg=`mktemp`
 
@@ -160,9 +178,9 @@ function plot() {
     set xrange [ "($from)" : "($to)" ]
     set yrange [ 1.2 : 1.6 ]
     set ytics 0.1
-    set format x "%H:%M\\n%a %d"
+    set format x "$format"
     $xtics
-    set mxtics 2
+    $mxtics
     set grid xtics mxtics ytics
     set key left
     set lmargin 5 
@@ -201,6 +219,7 @@ function generate_plots() {
     local yesterday="`date +%D-%H:%M:%S -d \"-1day 0\"`"
     local last_week="`date +%D-%H:%M:%S -d \"-7day 0\"`"
     local last_month="`date +%D-%H:%M:%S -d \"-30day 0\"`"
+    local last_year="`date +%D-%H:%M:%S -d \"-365day 0\"`"
 
     if [ "$id" != "" ]; then
         local g1="$wwwdir/${id}-g1"
@@ -215,12 +234,20 @@ function generate_plots() {
         local g2="$wwwdir/g2"
         local g3="$wwwdir/g3"
         local g4="$wwwdir/g4"
+        local g5="$wwwdir/g5"
     fi
 
-    plot "$today" "$tomorrow" "true" "$g1" "Today" "$id"
-    plot "$yesterday" "$today" "true" "$g2" "Yesterday" "$id"
-    plot "$last_week" "$tomorrow" "false" "$g3" "Last week" "$id"
-    plot "$last_month" "$tomorrow" "false" "$g4" "Last month" "$id"
+    local day_ticks=$((60*60*2))
+    local week_ticks=$((60*60*24))
+    local month_ticks=$((60*60*24*3))
+    local year_ticks=$((60*60*24*30))
+
+    plot "$today" "$tomorrow" "$day_ticks" "2" "$g1" "Today" "$id"
+    plot "$yesterday" "$today" "$day_ticks" "2" "$g2" "Yesterday" "$id"
+    plot "$last_week" "$tomorrow" "$week_ticks" "2" "$g3" "Last week" "$id"
+    plot "$last_month" "$tomorrow" "$month_ticks" "3" "$g4" "Last month" "$id"
+    [ -z "$id" ] && \
+        plot "$last_year" "$tomorrow" "$year_ticks" "3" "$g5" "Last year"
 }
 # ----
 
