@@ -176,7 +176,7 @@ function plot() {
     set xdata time
     set timefmt "(%m/%d/%y-%H:%M:%S)"
     set xrange [ "($from)" : "($to)" ]
-    set yrange [ 1.2 : 1.6 ]
+    set yrange [ 1.1 : 1.5 ]
     set ytics 0.1
     set format x "$format"
     $xtics
