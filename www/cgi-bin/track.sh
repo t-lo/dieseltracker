@@ -153,6 +153,7 @@ function plot() {
     local plot_name="$5"
     local desc="$6"
     local id="$7"
+    local yrange="$8"
 
     local xtics="set xtics 0,$ticks_sec"
     local mxtics="set mxtics $mticks_sec"
@@ -176,7 +177,7 @@ function plot() {
     set xdata time
     set timefmt "(%m/%d/%y-%H:%M:%S)"
     set xrange [ "($from)" : "($to)" ]
-    set yrange [ 1.1 : 1.5 ]
+    set yrange [ $yrange ]
     set ytics 0.1
     set format x "$format"
     $xtics
@@ -242,12 +243,17 @@ function generate_plots() {
     local month_ticks=$((60*60*24*3))
     local year_ticks=$((60*60*24*30))
 
-    plot "$today" "$tomorrow" "$day_ticks" "2" "$g1" "Today" "$id"
-    plot "$yesterday" "$today" "$day_ticks" "2" "$g2" "Yesterday" "$id"
-    plot "$last_week" "$tomorrow" "$week_ticks" "2" "$g3" "Last week" "$id"
-    plot "$last_month" "$tomorrow" "$month_ticks" "3" "$g4" "Last month" "$id"
+    plot "$today" "$tomorrow" "$day_ticks" "2" \
+                                        "$g1" "Today" "$id" "1.0 : 1.4"
+    plot "$yesterday" "$today" "$day_ticks" "2" \
+                                        "$g2" "Yesterday" "$id" "1.0 : 1.4"
+    plot "$last_week" "$tomorrow" "$week_ticks" "2" \
+                                        "$g3" "Last week" "$id" "1.0 : 1.4"
+    plot "$last_month" "$tomorrow" "$month_ticks" "3" \
+                                        "$g4" "Last month" "$id" "1.0 : 1.4"
     [ -z "$id" ] && \
-        plot "$last_year" "$tomorrow" "$year_ticks" "3" "$g5" "Last year"
+        plot "$last_year" "$tomorrow" "$year_ticks" "3" \
+                                        "$g5" "Last year" "" "1.0 : 1.5"
 }
 # ----
 
